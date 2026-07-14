@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>coroom - 회의실 예약</title>
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <!-- 로그인 / 회원가입 화면 -->
+  <div id="auth-view" class="hidden">
+    <div class="auth-box">
+      <h1 class="brand">coroom</h1>
+      <p class="brand-sub">회의실 예약 서비스</p>
+
+      <div id="login-form" class="auth-form">
+        <h2>로그인</h2>
+        <p id="login-error" class="error hidden"></p>
+        <label>이메일</label>
+        <input type="email" id="login-email" autocomplete="email" required />
+        <label>비밀번호</label>
+        <input type="password" id="login-password" autocomplete="current-password" required />
+        <button type="button" id="login-submit-btn">로그인</button>
+        <p class="switch-auth">계정이 없으신가요? <a href="#" id="show-signup-link">회원가입</a></p>
+      </div>
+
+      <div id="signup-form" class="auth-form hidden">
+        <h2>회원가입</h2>
+        <p id="signup-error" class="error hidden"></p>
+        <p id="signup-success" class="success hidden"></p>
+        <label>이름</label>
+        <input type="text" id="signup-name" required />
+        <label>부서</label>
+        <input type="text" id="signup-department" />
+        <label>이메일</label>
+        <input type="email" id="signup-email" autocomplete="email" required />
+        <label>비밀번호</label>
+        <input type="password" id="signup-password" autocomplete="new-password" required minlength="6" />
+        <button type="button" id="signup-submit-btn">회원가입</button>
+        <p class="switch-auth">이미 계정이 있으신가요? <a href="#" id="show-login-link">로그인</a></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 로그인 후 앱 화면 -->
+  <div id="app-view" class="hidden">
+    <header class="app-header">
+      <h1 class="brand">coroom</h1>
+      <nav id="tabs">
+        <button class="tab-btn active" data-tab="dashboard">대시보드</button>
+        <button class="tab-btn" data-tab="my-reservations">내 예약</button>
+        <button class="tab-btn" data-tab="room-info">회의실 정보</button>
+        <button class="tab-btn hidden" id="admin-tab-btn" data-tab="admin">관리자</button>
+      </nav>
+      <div class="user-info">
+        <span id="user-name-label"></span>
+        <button id="logout-btn" class="ghost-btn">로그아웃</button>
+      </div>
+    </header>
+
+    <main>
+      <!-- 대시보드 -->
+      <section id="dashboard-tab" class="tab-panel">
+        <div class="date-nav">
+          <button id="prev-date-btn" class="icon-btn">◀</button>
+          <input type="date" id="date-input" />
+          <button id="next-date-btn" class="icon-btn">▶</button>
+          <button id="today-btn" class="ghost-btn">오늘</button>
+        </div>
+        <p class="hint">빈 칸을 클릭하면 예약할 수 있습니다.</p>
+        <div id="grid-wrapper">
+          <table id="reservation-grid"></table>
+        </div>
+      </section>
+
+      <!-- 내 예약 -->
+      <section id="my-reservations-tab" class="tab-panel hidden">
+        <h2>내 예약</h2>
+        <h3>예정된 예약</h3>
+        <div id="upcoming-reservations" class="reservation-list"></div>
+        <h3>지난 예약</h3>
+        <div id="past-reservations" class="reservation-list"></div>
+      </section>
+
+      <!-- 회의실 정보 -->
+      <section id="room-info-tab" class="tab-panel hidden">
+        <h2>회의실 정보</h2>
+        <div id="room-cards" class="room-cards"></div>
+      </section>
+
+      <!-- 관리자 -->
+      <section id="admin-tab" class="tab-panel hidden">
+        <h2>관리자</h2>
+        <h3>회의실 관리</h3>
+        <div id="admin-room-list" class="admin-room-list"></div>
+        <h3>전체 예약 관리</h3>
+        <div class="date-nav">
+          <label style="margin-right:6px;">날짜 필터</label>
+          <input type="date" id="admin-date-input" />
+          <button id="admin-date-clear-btn" class="ghost-btn">전체보기</button>
+        </div>
+        <div id="admin-reservation-list" class="reservation-list"></div>
+      </section>
+    </main>
+  </div>
+
+  <!-- 예약 모달 -->
+  <div id="reservation-modal" class="modal hidden">
+    <div class="modal-content">
+      <h3>회의실 예약</h3>
+      <form id="reservation-form">
+        <div class="form-row"><label>회의실</label><span id="modal-room-name"></span></div>
+        <div class="form-row"><label>날짜</label><span id="modal-date"></span></div>
+        <div class="form-row">
+          <label>시작 시간</label>
+          <select id="modal-start-time"></select>
+        </div>
+        <div class="form-row">
+          <label>종료 시간</label>
+          <select id="modal-end-time"></select>
+        </div>
+        <div class="form-row">
+          <label>회의 제목 *</label>
+          <input type="text" id="modal-title" required placeholder="예: 주간 팀 회의" />
+        </div>
+        <div class="form-row">
+          <label>참석 인원</label>
+          <input type="number" id="modal-attendees" min="1" placeholder="선택" />
+        </div>
+        <p id="modal-capacity-warning" class="warning hidden"></p>
+        <p id="modal-error" class="error hidden"></p>
+        <div class="modal-actions">
+          <button type="button" id="modal-cancel-btn" class="ghost-btn">취소</button>
+          <button type="submit" id="modal-save-btn">예약하기</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="toast" class="toast hidden"></div>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
