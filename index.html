@@ -2,11 +2,38 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 <title>CoRoom - 회의실 예약</title>
+
+<!-- PWA manifest / 아이콘 -->
+<link rel="manifest" href="manifest.json" />
+<meta name="theme-color" content="#33538C" />
+<link rel="icon" type="image/svg+xml" href="icons/icon.svg" />
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png" />
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
+
+<!-- iOS 홈 화면 앱 대응 -->
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="CoRoom" />
+
 <link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
+
+  <!-- 오프라인 안내 배너 -->
+  <div id="offline-banner" class="offline-banner hidden" role="status">
+    오프라인 상태입니다 · 마지막으로 저장된 화면을 보고 있습니다
+  </div>
+
+  <!-- 홈 화면에 추가 안내 배너 -->
+  <div id="install-banner" class="install-banner hidden" role="status">
+    <span id="install-banner-text"></span>
+    <div class="install-banner-actions">
+      <button type="button" id="install-btn" class="install-btn hidden">설치</button>
+      <button type="button" id="install-close-btn" class="install-close-btn" aria-label="닫기">&times;</button>
+    </div>
+  </div>
 
   <!-- 로그인 / 회원가입 화면 -->
   <div id="auth-view" class="hidden">
@@ -69,6 +96,7 @@
           <button id="today-btn" class="ghost-btn">오늘</button>
         </div>
         <p class="hint">빈 칸을 클릭하면 예약할 수 있습니다.</p>
+        <p class="hint mobile-scroll-hint">← 좌우로 스크롤하면 전체 회의실을 볼 수 있어요 →</p>
         <div id="grid-wrapper">
           <table id="reservation-grid"></table>
         </div>
@@ -141,5 +169,7 @@
   <div id="toast" class="toast hidden"></div>
 
   <script type="module" src="js/app.js"></script>
+  <script src="js/sw-register.js"></script>
+  <script src="js/pwa-install.js"></script>
 </body>
 </html>

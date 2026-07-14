@@ -1,0 +1,30 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#5B7FBE"/>
+      <stop offset="0.55" stop-color="#33538C"/>
+      <stop offset="1" stop-color="#1B2E52"/>
+    </linearGradient>
+    <linearGradient id="glass" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity="0.10"/>
+      <stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+
+  <!-- background -->
+  <rect width="512" height="512" rx="112" fill="url(#bg)"/>
+  <rect width="512" height="256" rx="112" fill="url(#glass)"/>
+
+  <!-- room / door glyph -->
+  <g fill="none" stroke="#EAF1FF" stroke-width="16" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="182" y="96" width="148" height="164" rx="14"/>
+    <circle cx="296" cy="180" r="7" fill="#EAF1FF" stroke="none"/>
+  </g>
+
+  <!-- confirmed-booking check badge -->
+  <circle cx="338" cy="228" r="42" fill="#EAF1FF"/>
+  <path d="M320 228 L334 242 L360 212" stroke="#1B2E52" stroke-width="13" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <!-- wordmark -->
+  <text x="256" y="392" text-anchor="middle" font-family="Arial, 'Segoe UI', Helvetica, sans-serif" font-size="66" font-weight="700" fill="#F5F8FF" letter-spacing="0.5">Coroom</text>
+</svg>

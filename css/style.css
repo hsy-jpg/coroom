@@ -7,6 +7,14 @@ body {
   font-family: -apple-system, "Apple SD Gothic Neo", "Segoe UI", Roboto, "Noto Sans KR", sans-serif;
   background: #f5f6f8;
   color: #1f2328;
+  padding-top: env(safe-area-inset-top);
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+}
+
+/* iOS Safari에서 16px 미만 input/select는 포커스 시 자동 확대(zoom)가 발생하므로 기본값을 16px 이상으로 고정 */
+input, select, textarea {
+  font-size: 16px;
 }
 
 .hidden {
@@ -63,10 +71,10 @@ body {
 
 .auth-form input {
   width: 100%;
-  padding: 9px 10px;
+  padding: 11px 10px;
   border: 1px solid #d1d5db;
   border-radius: 6px;
-  font-size: 14px;
+  font-size: 16px;
 }
 
 .auth-form button {
@@ -153,7 +161,10 @@ body {
 .tab-btn {
   border: none;
   background: transparent;
-  padding: 8px 14px;
+  padding: 10px 14px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
   border-radius: 6px;
   font-size: 14px;
   cursor: pointer;
@@ -181,7 +192,10 @@ body {
 .ghost-btn {
   border: 1px solid #d1d5db;
   background: #fff;
-  padding: 7px 12px;
+  padding: 9px 12px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
   border-radius: 6px;
   cursor: pointer;
   font-size: 13px;
@@ -196,6 +210,11 @@ body {
   border: 1px solid #d1d5db;
   background: #fff;
   padding: 6px 10px;
+  min-width: 44px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   border-radius: 6px;
   cursor: pointer;
 }
@@ -216,6 +235,10 @@ main {
   margin: 8px 0 12px;
 }
 
+.mobile-scroll-hint {
+  display: none;
+}
+
 /* ---------- 대시보드 날짜 이동 ---------- */
 .date-nav {
   display: flex;
@@ -225,10 +248,11 @@ main {
 }
 
 .date-nav input[type="date"] {
-  padding: 7px 8px;
+  padding: 9px 8px;
   border: 1px solid #d1d5db;
   border-radius: 6px;
-  font-size: 14px;
+  font-size: 16px;
+  min-height: 44px;
 }
 
 /* ---------- 예약 그리드 ---------- */
@@ -271,11 +295,13 @@ main {
   white-space: nowrap;
   position: sticky;
   left: 0;
+  z-index: 1;
 }
 
 td.slot-empty {
   cursor: pointer;
   color: #9ca3af;
+  font-size: 16px;
 }
 
 td.slot-empty:hover {
@@ -366,7 +392,8 @@ td.slot-booked .r-user {
   border: 1px solid #fecdca;
   background: #fff;
   color: #d92d20;
-  padding: 6px 12px;
+  padding: 9px 14px;
+  min-height: 40px;
   border-radius: 6px;
   cursor: pointer;
   font-size: 13px;
@@ -444,10 +471,11 @@ td.slot-booked .r-user {
 }
 
 .admin-room-card input {
-  padding: 6px 8px;
+  padding: 8px 8px;
   border: 1px solid #d1d5db;
   border-radius: 6px;
-  font-size: 13px;
+  font-size: 16px;
+  min-height: 40px;
 }
 
 .admin-room-card .field.name-field {
@@ -459,7 +487,8 @@ td.slot-booked .r-user {
   border: none;
   background: #2f6fed;
   color: #fff;
-  padding: 7px 14px;
+  padding: 9px 14px;
+  min-height: 40px;
   border-radius: 6px;
   cursor: pointer;
   font-size: 13px;
@@ -508,10 +537,11 @@ td.slot-booked .r-user {
 }
 
 .form-row input, .form-row select {
-  padding: 8px 9px;
+  padding: 10px 9px;
   border: 1px solid #d1d5db;
   border-radius: 6px;
-  font-size: 14px;
+  font-size: 16px;
+  min-height: 44px;
 }
 
 .modal-actions {
@@ -557,10 +587,91 @@ td.slot-booked .r-user {
   background: #d92d20;
 }
 
+/* ---------- 오프라인 안내 배너 ---------- */
+.offline-banner {
+  position: sticky;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 300;
+  background: #fffaeb;
+  color: #92400e;
+  border-bottom: 1px solid #fedf89;
+  padding: 10px 16px;
+  padding-top: calc(10px + env(safe-area-inset-top));
+  font-size: 13px;
+  text-align: center;
+}
+
+/* ---------- 홈 화면에 추가 안내 배너 ---------- */
+.install-banner {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 250;
+  background: #1f2328;
+  color: #fff;
+  padding: 12px 16px;
+  padding-bottom: calc(12px + env(safe-area-inset-bottom));
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 13px;
+  line-height: 1.4;
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.15);
+}
+
+#install-banner-text {
+  flex: 1;
+}
+
+.install-banner-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.install-btn {
+  border: none;
+  background: #2f6fed;
+  color: #fff;
+  padding: 9px 14px;
+  min-height: 40px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.install-btn:hover {
+  background: #2559c9;
+}
+
+.install-close-btn {
+  border: none;
+  background: transparent;
+  color: #d1d5db;
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+  min-width: 40px;
+  min-height: 40px;
+  border-radius: 6px;
+}
+
+.install-close-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
 @media (max-width: 640px) {
   .app-header {
     flex-direction: column;
     align-items: stretch;
+    padding-top: calc(12px + env(safe-area-inset-top));
   }
   #tabs {
     order: 2;
@@ -568,5 +679,73 @@ td.slot-booked .r-user {
   .user-info {
     order: 1;
     justify-content: space-between;
+  }
+
+  main {
+    padding: 16px 12px 40px;
+  }
+
+  .date-nav {
+    flex-wrap: wrap;
+  }
+  .date-nav input[type="date"] {
+    flex: 1;
+    min-width: 140px;
+  }
+
+  .mobile-scroll-hint {
+    display: block;
+  }
+
+  /* 타임테이블: 터치 대상(빈 칸) 최소 44px 확보 */
+  #reservation-grid th, #reservation-grid td {
+    height: 44px;
+  }
+  #reservation-grid {
+    font-size: 12px;
+  }
+
+  /* 모달: 작은 화면에서 여백 축소 + 버튼 잘림 방지 */
+  .modal {
+    padding: 10px;
+  }
+  .modal-content {
+    padding: 18px;
+    max-width: 100%;
+    width: 100%;
+    max-height: 92vh;
+    padding-bottom: calc(18px + env(safe-area-inset-bottom));
+  }
+  .modal-actions {
+    flex-wrap: wrap;
+  }
+  .modal-actions button {
+    flex: 1;
+    min-height: 44px;
+  }
+
+  /* 예약 카드: 세로 배치 + 취소 버튼 터치 영역 확보 */
+  .reservation-card {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .reservation-card > div {
+    width: 100%;
+  }
+  .reservation-card button.cancel-btn {
+    width: 100%;
+    min-height: 44px;
+  }
+
+  .admin-room-card {
+    align-items: stretch;
+  }
+  .admin-room-card .save-btn {
+    width: 100%;
+    min-height: 44px;
+  }
+
+  .install-banner {
+    flex-wrap: wrap;
   }
 }

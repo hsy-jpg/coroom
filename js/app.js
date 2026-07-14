@@ -35,6 +35,57 @@ let currentModalDate = null;
 let toastTimer = null;
 
 // ---------------------------------------------------------------------------
+// 오프라인 캐시 (localStorage)
+// ---------------------------------------------------------------------------
+const CACHE_KEYS = {
+  rooms: 'coroom_cache_rooms',
+  dashboard: 'coroom_cache_dashboard',
+  myReservations: 'coroom_cache_my_reservations',
+};
+
+function saveCache(key, data) {
+  try {
+    localStorage.setItem(key, JSON.stringify({ data, cachedAt: Date.now() }));
+  } catch (e) {
+    /* 저장 공간 부족 등은 무시 */
+  }
+}
+
+function loadCacheEntry(key) {
+  try {
+    const raw = localStorage.getItem(key);
+    if (!raw) return null;
+    return JSON.parse(raw);
+  } catch (e) {
+    return null;
+  }
+}
+
+// Supabase 호출 실패가 "네트워크 오류"인지 판별 (오프라인/서버 도달 불가)
+function isNetworkError(error) {
+  if (!navigator.onLine) return true;
+  if (!error) return false;
+  const msg = String(error.message || '').toLowerCase();
+  return (
+    msg.includes('failed to fetch') ||
+    msg.includes('load failed') ||
+    msg.includes('networkerror') ||
+    msg.includes('network request failed') ||
+    msg.includes('network error')
+  );
+}
+
+function showOfflineBanner() {
+  const el = document.getElementById('offline-banner');
+  if (el) el.classList.remove('hidden');
+}
+
+function hideOfflineBanner() {
+  const el = document.getElementById('offline-banner');
+  if (el) el.classList.add('hidden');
+}
+
+// ---------------------------------------------------------------------------
 // 유틸리티
 // ---------------------------------------------------------------------------
 function minutesToHHMM(min) {
@@ -77,6 +128,13 @@ function timeToSlotIndex(timeStr) {
 
 function toast(msg, isError = false) {
   const el = document.getElementById('toast');
+  const installBanner = document.getElementById('install-banner');
+  // 설치 안내 배너가 화면 하단에 떠 있으면 토스트가 겹치지 않도록 위로 띄운다.
+  if (installBanner && !installBanner.classList.contains('hidden')) {
+    el.style.bottom = `calc(${installBanner.offsetHeight + 16}px + env(safe-area-inset-bottom))`;
+  } else {
+    el.style.bottom = '';
+  }
   el.textContent = msg;
   el.classList.toggle('error-toast', isError);
   el.classList.remove('hidden');
@@ -143,6 +201,10 @@ function switchTab(tabName) {
   const panel = document.getElementById(`${tabName}-tab`);
   if (panel) panel.classList.remove('hidden');
 
+  loadTabData(tabName);
+}
+
+function loadTabData(tabName) {
   if (tabName === 'dashboard') {
     document.getElementById('date-input').value = state.dashboardDate;
     loadDashboard(state.dashboardDate);
@@ -165,10 +227,20 @@ async function loadRooms(force = false) {
     .select('*')
     .order('id', { ascending: true });
   if (error) {
+    if (isNetworkError(error)) {
+      showOfflineBanner();
+      const cached = loadCacheEntry(CACHE_KEYS.rooms);
+      if (cached) {
+        state.rooms = cached.data;
+        return state.rooms;
+      }
+    }
     toast('회의실 목록을 불러오지 못했습니다: ' + error.message, true);
     return state.rooms;
   }
   state.rooms = data || [];
+  saveCache(CACHE_KEYS.rooms, state.rooms);
+  hideOfflineBanner();
   return state.rooms;
 }
 
@@ -184,9 +256,21 @@ async function loadDashboard(dateStr) {
     .eq('status', 'confirmed');
 
   if (error) {
+    if (isNetworkError(error)) {
+      showOfflineBanner();
+      const cached = loadCacheEntry(CACHE_KEYS.dashboard);
+      if (cached && cached.data && cached.data.date === dateStr) {
+        renderGrid(dateStr, cached.data.reservations);
+        return;
+      }
+      toast('오프라인 상태이며 이 날짜의 저장된 화면이 없습니다.', true);
+      return;
+    }
     toast('예약 현황을 불러오지 못했습니다: ' + error.message, true);
     return;
   }
+  hideOfflineBanner();
+  saveCache(CACHE_KEYS.dashboard, { date: dateStr, reservations: data || [] });
   renderGrid(dateStr, data || []);
 }
 
@@ -309,6 +393,12 @@ async function submitReservation(e) {
   const errorEl = document.getElementById('modal-error');
   errorEl.classList.add('hidden');
 
+  if (!navigator.onLine) {
+    errorEl.textContent = '오프라인 상태에서는 예약할 수 없습니다.';
+    errorEl.classList.remove('hidden');
+    return;
+  }
+
   const title = document.getElementById('modal-title').value.trim();
   const startTime = document.getElementById('modal-start-time').value;
   const endTime = document.getElementById('modal-end-time').value;
@@ -365,10 +455,26 @@ async function loadMyReservations() {
     .order('start_time', { ascending: false });
 
   if (error) {
+    if (isNetworkError(error)) {
+      showOfflineBanner();
+      const cached = loadCacheEntry(CACHE_KEYS.myReservations);
+      if (cached) {
+        splitAndRenderMyReservations(cached.data);
+        return;
+      }
+      toast('오프라인 상태이며 저장된 내 예약 화면이 없습니다.', true);
+      return;
+    }
     toast('내 예약을 불러오지 못했습니다: ' + error.message, true);
     return;
   }
 
+  hideOfflineBanner();
+  saveCache(CACHE_KEYS.myReservations, data || []);
+  splitAndRenderMyReservations(data || []);
+}
+
+function splitAndRenderMyReservations(data) {
   const now = new Date();
   const todayStr = formatDateLocal(now);
   const nowMinutes = now.getHours() * 60 + now.getMinutes();
@@ -444,6 +550,10 @@ function renderReservationList(containerId, list, opts) {
 }
 
 async function cancelReservation(id) {
+  if (!navigator.onLine) {
+    toast('오프라인 상태에서는 예약을 취소할 수 없습니다.', true);
+    return;
+  }
   if (!confirm('이 예약을 취소하시겠습니까?')) return;
   const { error } = await supabase.from('reservations').update({ status: 'cancelled' }).eq('id', id);
   if (error) {
@@ -496,6 +606,10 @@ function renderAdminRooms() {
 
   container.querySelectorAll('.admin-room-card').forEach((card) => {
     card.querySelector('.save-btn').addEventListener('click', async () => {
+      if (!navigator.onLine) {
+        toast('오프라인 상태에서는 회의실 정보를 저장할 수 없습니다.', true);
+        return;
+      }
       const roomId = Number(card.dataset.roomId);
       const capacity = Number(card.querySelector('.admin-capacity').value);
       const equipment = card.querySelector('.admin-equipment').value.trim();
@@ -541,6 +655,10 @@ async function loadAdminReservations(dateFilter) {
 }
 
 async function adminCancelReservation(id) {
+  if (!navigator.onLine) {
+    toast('오프라인 상태에서는 예약을 취소할 수 없습니다.', true);
+    return;
+  }
   if (!confirm('이 예약을 강제로 취소하시겠습니까?')) return;
   const { error } = await supabase.from('reservations').update({ status: 'cancelled' }).eq('id', id);
   if (error) {
@@ -707,6 +825,20 @@ function setupStaticListeners() {
 // ---------------------------------------------------------------------------
 async function init() {
   setupStaticListeners();
+
+  // 네트워크 상태 변화에 따라 오프라인 배너/데이터 자동 갱신
+  window.addEventListener('offline', () => {
+    showOfflineBanner();
+  });
+  window.addEventListener('online', () => {
+    hideOfflineBanner();
+    if (state.session) {
+      loadTabData(state.currentTab);
+    }
+  });
+  if (!navigator.onLine) {
+    showOfflineBanner();
+  }
 
   const { data } = await supabase.auth.getSession();
   await handleSession(data.session);
